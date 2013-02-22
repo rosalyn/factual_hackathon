@@ -12,12 +12,12 @@ function handleSearchPattern(e) {
   var nodeName = e.target.nodeName;
 
   if (e.keyCode == FWRD_SLASH_KEY && !e.shiftKey && !e.ctrlKey && !e.altKey) {
-    //if (nodeName != 'TEXTAREA' && (nodeName != "INPUT" || isAllowedType(e.target.type))) {
+    if (nodeName != 'TEXTAREA' && (nodeName != "INPUT" || isAllowedType(e.target.type))) {
       showRegexSearchPanel();
       // Cancel interfering events
       e.stopPropagation();
       e.preventDefault();
-    //}
+    }
   }
  
   else if (isSearchActive) {
