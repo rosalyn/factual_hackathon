@@ -12,9 +12,9 @@ function handleSearchPattern(e) {
   var nodeName = e.target.nodeName;
 
   if (e.keyCode == FWRD_SLASH_KEY && !e.shiftKey && !e.ctrlKey && !e.altKey) {
+    isSearchActive = false;
     if (nodeName != 'TEXTAREA' && (nodeName != "INPUT" || isAllowedType(e.target.type))) {
       showRegexSearchPanel();
-      // Cancel interfering events
       e.stopPropagation();
       e.preventDefault();
     }
@@ -65,14 +65,9 @@ function highlightCurrentMatch() {
 }
 
 function showRegexSearchPanel() {
-  var panel = document.getElementById("regexSearchPanel");
-  if (!panel) {
-    var input = createRegexSearchPanel();
-  }
-  else {
-    var input = document.getElementById("regexSearchInput");
-    panel.style.display = "block";
-  }
+  var input = createRegexSearchPanel();
+  panel = document.getElementById("regexSearchPanel");
+  panel.style.display = "block";
   input.focus();
   input.select();
 }
@@ -81,14 +76,13 @@ function isAllowedType(type) {
   return type == "button" || type == "checkbox" || type == "image" || type == "radio" || type == "reset" || type == "submit";
 }
 
-function highlightMatches(searchExpression, node, totalMatched) {
+function highlightMatches(regex, node, totalMatched) {
   var tags_regex = /<[^<>]*>/ig;
   var HTMLarray = node.innerHTML.match(tags_regex);
   // Replace HTML tags
   var strippedHTML = node.innerHTML.replace(tags_regex, "$!$");
 
   // Replace search words
-  var regex = new RegExp("(" + searchExpression + ")", "ig");
   var temp = strippedHTML.replace(regex, '<span class="highlight">$1</span>');
 
   // Reinsert HTML
@@ -136,7 +130,6 @@ function createRegexSearchPanel() {
       panel.style.display = "none";
       input.blur();
       var searchExpression = input.value;
-      alert(searchExpression);
       if (searchExpression == "") {
         // Don't match, don't do anything
         clearSearch(document.body);
@@ -146,10 +139,8 @@ function createRegexSearchPanel() {
       else {
         // Clear previous search
         clearSearch(document.body);
-        //var regex = new RegExp(searchExpression, "ig");
-        var totalMatched = highlightMatches(searchExpression, document.body, 0);
-        input.value = "";
-        //var totalMatched = search(regex, document.body, 0);
+        var regex = new RegExp("(" + searchExpression + ")", "g");
+        var totalMatched = highlightMatches(regex, document.body, 0);
         if (totalMatched > 0) {
           isSearchActive = true;
         }
