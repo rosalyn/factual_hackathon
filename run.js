@@ -2,26 +2,27 @@ var isSearchActive = false;
 var markers = null;
 var highlightedIndex = 0;
 var lastHighlightedIndex = 0;
+var totalMatched = 0;
 
 var ENTER_KEY = 13;
 var PREVIOUS_KEY = 78;
 var NEXT_KEY = 110;
 var FWRD_SLASH_KEY = 47;
+var QUIT_KEY = 81;
 
 function handleSearchPattern(e) {
   var nodeName = e.target.nodeName;
 
-  if (e.keyCode == FWRD_SLASH_KEY && !e.shiftKey && !e.ctrlKey && !e.altKey) {
-    isSearchActive = false;
+  if (e.keyCode == FWRD_SLASH_KEY) {
     if (nodeName != 'TEXTAREA' && (nodeName != "INPUT" || isAllowedType(e.target.type))) {
+      clearSearch(document.body);
       showRegexSearchPanel();
       e.stopPropagation();
       e.preventDefault();
     }
   }
- 
   else if (isSearchActive) {
-    if (e.keyCode == PREVIOUS_KEY && !e.ctrlKey && !e.altKey) {
+    if (e.keyCode == PREVIOUS_KEY) {
       init();
       lastHighlightedIndex = highlightedIndex;
       if (highlightedIndex < markers.length - 1)
@@ -30,7 +31,7 @@ function handleSearchPattern(e) {
         highlightedIndex = 0;
       highlightCurrentMatch();
     }
-    else if (e.keyCode == NEXT_KEY && !e.ctrlKey && !e.altKey) {
+    else if (e.keyCode == NEXT_KEY) {
       init();
       lastHighlightedIndex = highlightedIndex;
       if (highlightedIndex > 0)
@@ -40,11 +41,29 @@ function handleSearchPattern(e) {
       highlightCurrentMatch();
     }
   }
+
+  if (!isSearchActive && e.keyCode == ENTER_KEY) {
+    var panel = document.getElementById("regexSearchPanel");
+    if (panel) {
+      var input = document.getElementById("regexSearchInput");
+      doSearch(panel, input);
+    }
+  }
+
+  if (e.keyCode == QUIT_KEY) {
+    if (nodeName != 'TEXTAREA' && (nodeName != "INPUT" || isAllowedType(e.target.type))) {
+      var panel = document.getElementById("regexSearchPanel");
+      if (panel) {
+        panel.style.display = "none";
+      }
+    }
+  }
 }
 
 function init() {
-  if (markers != null)
+  if (markers != null) {
     return;
+  }
 
   markers = [];
   highlightedIndex = -1;
@@ -65,9 +84,14 @@ function highlightCurrentMatch() {
 }
 
 function showRegexSearchPanel() {
-  var input = createRegexSearchPanel();
-  panel = document.getElementById("regexSearchPanel");
-  panel.style.display = "block";
+  var panel = document.getElementById("regexSearchPanel");
+  if (!panel) {
+    var input = createRegexSearchPanel();
+  }
+  else {
+    var input = document.getElementById("regexSearchInput");
+    panel.style.display = "block";
+  }
   input.focus();
   input.select();
 }
@@ -102,10 +126,31 @@ function highlightMatches(regex, node, totalMatched) {
 
 function clearSearch(node) {
   var highlight_tags_regex = /(<span class="highlight"[^<>]*>)([^<>]*)(<\/span>)/ig;
-  var temp = node.innerHTML.replace(highlight_tags_regex, "$2");
+  var temp = node.innerHTML.replace(highlight_tags_regex, '$2');
   node.innerHTML = temp;
   isSearchActive = false;
   markers = null;
+}
+
+function doSearch(panel, searchInput) {
+  panel.style.display = "none";
+  searchInput.blur();
+  var searchExpression = searchInput.value;
+  if (searchExpression == "") {
+    // Don't match, don't do anything
+    clearSearch(document.body);
+    // Clean up any structural problems in the original HTML
+    document.body.normalize();
+  }
+  else {
+    // Clear previous search
+    clearSearch(document.body);
+    var regex = new RegExp("(" + searchExpression + ")", "g");
+    totalMatched = highlightMatches(regex, document.body, 0);
+    if (totalMatched > 0) {
+      isSearchActive = true;
+    }
+  }
 }
 
 function createRegexSearchPanel() {
@@ -114,6 +159,7 @@ function createRegexSearchPanel() {
   panel.id = "regexSearchPanel";
   panel.style.position = "fixed";
   panel.style.zIndex = "10000";
+  panel.style.width = "160px";
   panel.style.top = "0px";
   panel.style.left = left + "px";
   panel.style.padding = "0px 2px 2px 2px";
@@ -124,27 +170,11 @@ function createRegexSearchPanel() {
   var input = document.createElement("input");
   input.id = "regexSearchInput";
   input.type = "text";
+  input.style.width = "100%";
   input.onblur = function(e) { panel.style.display = "none"; }
   input.onkeypress = function(e) {
-    if (e.keyCode == ENTER_KEY && !e.shiftKey && !e.ctrlKey && !e.altKey) {
-      panel.style.display = "none";
-      input.blur();
-      var searchExpression = input.value;
-      if (searchExpression == "") {
-        // Don't match, don't do anything
-        clearSearch(document.body);
-        // Clean up any structural problems in the original HTML
-        document.body.normalize();
-      }
-      else {
-        // Clear previous search
-        clearSearch(document.body);
-        var regex = new RegExp("(" + searchExpression + ")", "g");
-        var totalMatched = highlightMatches(regex, document.body, 0);
-        if (totalMatched > 0) {
-          isSearchActive = true;
-        }
-      }
+    if (e.keyCode == ENTER_KEY) {
+      doSearch(panel, input);
     }
   }
   panel.appendChild(input);

@@ -1,6 +1,6 @@
 {
   "manifest_version": 2,
-  "name": "Regex Find",
+  "name": "Regex Binoculars",
   "description": "This extension allows search using regular expressions in a browser.",
   "version": "1.0",
   "permissions": [
