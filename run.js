@@ -25,10 +25,7 @@ function handleSearchPattern(e) {
     if (e.keyCode == PREVIOUS_KEY) {
       init();
       lastHighlightedIndex = highlightedIndex;
-      if (highlightedIndex < markers.length - 1)
-        highlightedIndex++;
-      else
-        highlightedIndex = 0;
+      highlightedIndex = (highlightedIndex + 1) % markers.length;
       highlightCurrentMatch();
     }
     else if (e.keyCode == NEXT_KEY) {
