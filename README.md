@@ -28,3 +28,8 @@ $ git clone git@github.com:rosalyn/factual_hackathon.git
     [ENTER]  Search for your regular expression  
     Q        Quit/hide the tool
   ---------- ------------------------------------------------
+
+## Limitations
+
+1. You can't use this tool on github.com
+2. You can't use this tool on google.com (workaround: you can use it on bing!)
